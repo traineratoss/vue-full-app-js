@@ -1,37 +1,60 @@
-const authUserId = "userIdAuth";
-function isUserAuthenticated(userId) {
-    const secObj = _getCurrentSecurityObj();
-    if (!secObj || secObj.userId !== userId) {
-        return false;
-    }
-    return true;
-}
 
-function logInUser(userId) {
-    const secObj = _getCurrentSecurityObj();
-    if (!secObj) {
-        localStorage.removeItem(authUserId);
-        localStorage.setItem(authUserId, JSON.stringify({ id: userId }));
-    } else {
-        throw new Error("Auth log in err");
-    }
-}
+import { reactive } from 'vue';
+import { auth } from './auth';
 
-function getCurrentUserId() {
-    const obj = _getCurrentSecurityObj();
-    return obj ? obj.userId : -1;
-}
+const securityStore = reactive({
+  isUserLoggedIn: false,
+  isUserAdmin: false,
 
-function _getCurrentSecurityObj() {
-    const securityObj = localStorage.getItem(authUserId);
-    if (!securityObj) {
-        return null;
-    }
-    const authUserIdData = JSON.parse(securityObj);
-    if (!authUserIdData.id) {
-        return null;
-    }
-    return securityObj;
-}
+  logInUser(username, password) {
+    auth._logInUser(username, password);
+    this.isUserLoggedIn = true;
+    const role = auth._getRoleForCurrentLoggedInUser();
+    this.isUserAdmin = "ADMIN" === role;
+  },
 
-export { isUserAuthenticated, getCurrentUserId, logInUser }
+  getCurrentLoggedInUserDetails() {
+    if (this.isUserLoggedIn) {
+      const id = this.getCurrentLoggedInUserId();
+      const obj = auth._getUserObjFoId(id);
+      return {
+        fullName: obj.fullname,
+        userDetails: obj.username
+      }
+    }
+  },
+
+  setCurrentLoggedInUserDetails(newData) {
+    const id = this.getCurrentLoggedInUserId();
+    const updateData = {
+      id: id,
+      ...newData
+    }
+    auth._updateObjForId(updateData);
+  },
+
+  logOut() {
+    auth._logout();
+    this.isUserLoggedIn = false;
+    this.isUserAdmin = false;
+  },
+
+  init() {
+    const secObj = auth._getCurrentSecurityObj();
+    if (secObj) {
+      this.isUserLoggedIn = true;
+      const role = auth._getRoleForCurrentLoggedInUser();
+      this.isUserAdmin = "ADMIN" === role;  
+    }
+  },
+
+  getCurrentLoggedInUserId() {
+    const secObj = auth._getCurrentSecurityObj();
+    if (secObj) {
+      return secObj.id;
+    }
+    return -1;
+  }
+});
+
+export { securityStore}

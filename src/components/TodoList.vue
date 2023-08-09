@@ -34,7 +34,7 @@ function onItemEdit(data) {
   editingItem.value = -1;
 }
 
-function onItemEditing(data) {
+function onItemAttemptEditing(data) {
   editingItem.value = data ? data.id : -1;
 }
 
@@ -45,6 +45,11 @@ function isItemReadonly(item) {
   return item.id !== editingItem.value;
 }
 
+function onItemSelect(data) {
+  editingItem.value = -1;
+  emits('item-select', data);
+}
+
 </script>
 
 <template>
@@ -52,13 +57,16 @@ function isItemReadonly(item) {
   	<TodoItem v-for="(item, index) in items" :key="index"
         :id="item.id"
         :text="item.text"
+        :details="item.details"
+        :selected="item.selected"
         :completed="item.completed"
         :read-only="isItemReadonly(item)"
         @item-removed="onItemRemoved"
         @item-changed="onItemChanged"
-        @item-editing="onItemEditing"
-        @item-edit="onItemEdit"/>
-    <span v-if="items.length === 0">{{ placeholderTextValue }}</span>
+        @item-attempt-editing="onItemAttemptEditing"
+        @item-commit-edit="onItemEdit"
+        @item-select="onItemSelect"/>
+    <span class="placeholder" v-if="items.length === 0">{{ placeholderTextValue }}</span>
   </div>
 </template>
 
@@ -66,8 +74,16 @@ function isItemReadonly(item) {
   .container {
     margin-top: 10px;
     padding: 2px;
-    background-color: lightblue;
-    border: 1px solid slategray;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    background-color: antiquewhite;
+    border: 1px solid var(--border-color);
     border-radius: 5px;
+    min-height: 24px;
+  }
+
+  .placeholder {
+    opacity: 0.5;
   }
 </style>

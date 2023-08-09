@@ -17,7 +17,7 @@ const btnCls = computed(() => props.type.toLowerCase().replace("_", ""));
       class="my-button" 
       :class="btnCls"
       :title="hint"
-      @click="$emit('specialEvent')">
+      @click.stop.prevent="$emit('specialEvent')">
       <img v-if="icon" :src="icon"/>
       <span v-if="text">{{ text }}</span>
   </button>
@@ -29,7 +29,7 @@ const btnCls = computed(() => props.type.toLowerCase().replace("_", ""));
   }
   
   .type1 {
-  	background-color: yellow;
+  	background-color: orange;
     margin-left: 5px;
   }
 
